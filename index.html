@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Inchurch — Painel Executivo de Churn & Retenção</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root{
+    --green:#7DBB3B;
+    --green-dark:#5C9A28;
+    --green-tint:#EEF7E4;
+    --ink:#1B1F1A;
+    --ink-soft:#4B5563;
+    --mid:#8A93A3;
+    --line:#E7ECE3;
+    --bg:#FBFBF8;
+    --panel:#FFFFFF;
+    --danger:#E0553F;
+    --danger-tint:#FCEAE6;
+    --amber:#E0A22A;
+    --amber-tint:#FBF2DF;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif;}
+  body{padding:0 0 60px;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px;}
+
+  /* Top bar — inspired by inchurch.com.br header */
+  .topbar{
+    background:#fff; border-bottom:1px solid var(--line);
+    padding:18px 0; margin-bottom:34px;
+  }
+  .topbar-inner{
+    max-width:1180px; margin:0 auto; padding:0 24px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;
+  }
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo-mark{
+    display:grid; grid-template-columns:repeat(3,7px); grid-template-rows:repeat(2,7px); gap:3px;
+  }
+  .logo-mark i{background:var(--green); border-radius:2px;}
+  .logo-mark i:nth-child(2){opacity:.55;}
+  .logo-mark i:nth-child(5){opacity:.55;}
+  .logo-word{font-family:'Poppins',sans-serif; font-weight:700; font-size:19px; color:var(--ink); letter-spacing:-0.01em;}
+  .topbar-tag{
+    font-family:'Poppins',sans-serif; font-weight:600; font-size:12.5px; color:var(--green-dark);
+    background:var(--green-tint); padding:7px 14px; border-radius:20px;
+  }
+
+  header.hero{margin-bottom:30px;}
+  .eyebrow{font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.14em; color:var(--mid); text-transform:uppercase;}
+  h1{font-family:'Poppins',sans-serif; font-size:28px; font-weight:700; margin-top:6px; letter-spacing:-0.01em; color:var(--ink);}
+  .sub{color:var(--ink-soft); font-size:14px; margin-top:8px; max-width:640px; line-height:1.55;}
+  .status-pill{
+    display:inline-flex; align-items:center; gap:7px; font-size:12px; font-family:'Inter',sans-serif; font-weight:600;
+    background:var(--danger-tint); color:var(--danger);
+    padding:7px 14px; border-radius:20px; margin-top:14px;
+  }
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--danger);}
+
+  section{margin-bottom:36px;}
+  .section-title{
+    font-family:'Poppins',sans-serif; font-size:13.5px; font-weight:600; color:var(--ink);
+    text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-title::after{content:''; flex:1; height:1px; background:var(--line);}
+
+  /* KPI grid */
+  .kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  .kpi{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px;
+    box-shadow:0 1px 2px rgba(20,30,10,.03);
+  }
+  .kpi-label{font-size:11.5px; color:var(--mid); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; font-weight:600;}
+  .kpi-value{font-family:'Poppins',sans-serif; font-size:25px; font-weight:700; color:var(--ink);}
+  .kpi-trend{font-size:12px; margin-top:8px; font-weight:600;}
+  .kpi.warn{border-color:#F3D2CA; background:linear-gradient(180deg,#fff, #FEF9F8);}
+  .kpi.good{border-color:#CFE7B0; background:linear-gradient(180deg,#fff, var(--green-tint));}
+  .trend-down{color:var(--danger);}
+  .trend-up{color:var(--green-dark);}
+
+  /* Chart */
+  .chart-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px; box-shadow:0 1px 2px rgba(20,30,10,.03);}
+  .bars{display:flex; align-items:flex-end; gap:40px; height:180px; padding:0 20px; margin-top:10px;}
+  .bar-group{flex:1; display:flex; flex-direction:column; align-items:center; height:100%; justify-content:flex-end;}
+  .bar-stack{width:64px; display:flex; flex-direction:column-reverse; border-radius:6px 6px 0 0; overflow:hidden;}
+  .seg-saved{background:var(--green);}
+  .seg-lost{background:var(--danger);}
+  .bar-month{font-family:'Poppins',sans-serif; font-size:12px; font-weight:600; color:var(--ink-soft); margin-top:12px;}
+  .bar-ret{font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; margin-top:2px;}
+  .legend{display:flex; gap:22px; margin-top:18px; font-size:12px; color:var(--ink-soft);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .sw{width:10px; height:10px; border-radius:3px;}
+
+  /* Table */
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{
+    text-align:right; font-family:'Inter',sans-serif; font-size:11px; color:var(--mid); font-weight:600;
+    text-transform:uppercase; letter-spacing:.03em; padding:0 12px 10px; border-bottom:1px solid var(--line);
+  }
+  th:first-child, td:first-child{text-align:left;}
+  td{text-align:right; padding:12px; font-family:'JetBrains Mono',monospace; color:var(--ink); border-bottom:1px solid var(--line); font-size:12.5px;}
+  td:first-child{font-family:'Poppins',sans-serif; font-weight:600; color:var(--ink); font-size:13px;}
+  tr:last-child td{border-bottom:none;}
+  .neg{color:var(--danger); font-weight:700;}
+  .pos{color:var(--green-dark); font-weight:700;}
+
+  /* Root cause */
+  .cause-list{display:flex; flex-direction:column; gap:12px;}
+  .cause{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+    display:grid; grid-template-columns:36px 190px 1fr; align-items:center; gap:18px;
+    box-shadow:0 1px 2px rgba(20,30,10,.03);
+  }
+  .rank{font-family:'Poppins',sans-serif; font-weight:700; font-size:19px; color:var(--mid);}
+  .cause-name{font-weight:600; font-size:14px; font-family:'Poppins',sans-serif;}
+  .cause-bar-bg{height:8px; background:var(--green-tint); border-radius:4px; overflow:hidden;}
+  .cause-bar-fill{height:100%; border-radius:4px;}
+
+  /* Callouts */
+  .callout{
+    border-left:3px solid var(--danger); background:var(--danger-tint); border-radius:0 10px 10px 0;
+    padding:14px 18px; font-size:13.5px; line-height:1.55; color:#8A2E1E; margin-top:16px;
+  }
+  .callout.insight{border-left-color:var(--amber); background:var(--amber-tint); color:#7A5711;}
+  .callout b{color:var(--ink);}
+
+  /* Recommendations */
+  .rec-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .rec-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; box-shadow:0 1px 2px rgba(20,30,10,.03);}
+  .rec-tag{font-family:'Inter',sans-serif; font-weight:700; font-size:10.5px; color:var(--green-dark); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;}
+  .rec-title{font-family:'Poppins',sans-serif; font-weight:600; font-size:15px; margin-bottom:10px; color:var(--ink);}
+  .rec-card ul{padding-left:16px; color:var(--ink-soft); font-size:12.5px; line-height:1.7;}
+
+  /* Audit footer */
+  .audit{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-soft);
+    background:#fff; border:1px dashed var(--line); border-radius:10px; padding:14px 16px; line-height:1.6;
+  }
+  .audit b{color:var(--ink);}
+
+  footer.brand-footer{
+    margin-top:40px; padding-top:20px; border-top:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .brand-footer .logo-word{font-size:14px;}
+  .brand-footer .logo-mark i{width:5px; height:5px;}
+  .brand-footer .logo-mark{grid-template-columns:repeat(3,5px); grid-template-rows:repeat(2,5px);}
+  .fdate{font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--mid);}
+
+  @media (max-width:900px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .rec-grid{grid-template-columns:1fr;}
+    .cause{grid-template-columns:28px 1fr; grid-template-rows:auto auto;}
+    .cause-bar-bg{grid-column:1 / -1;}
+    .bars{gap:16px; padding:0;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">
+        <div class="logo-mark"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="logo-word">inchurch</div>
+      </div>
+      <div class="topbar-tag">Relatório Interno · Customer Success</div>
+    </div>
+  </div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Business Intelligence · Customer Success</div>
+    <h1>Painel de Churn &amp; Retenção</h1>
+    <p class="sub">Consolidado do trimestre Abril–Junho 2026, com base nas solicitações de cancelamento atendidas pela equipe de CS.</p>
+    <div class="status-pill"><span class="dot"></span> RETENÇÃO EM QUEDA — 3 MESES CONSECUTIVOS</div>
+  </header>
+
+  <section>
+    <div class="section-title">Indicadores Consolidados</div>
+    <div class="kpi-grid">
+      <div class="kpi warn">
+        <div class="kpi-label">Retenção Consolidada</div>
+        <div class="kpi-value">37,24%</div>
+        <div class="kpi-trend trend-down">▼ -7,85pp desde Abril</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Total de Solicitações</div>
+        <div class="kpi-value">196</div>
+        <div class="kpi-trend" style="color:var(--ink-soft);">123 perdidos · 73 salvos</div>
+      </div>
+      <div class="kpi warn">
+        <div class="kpi-label">Receita Perdida (Mai+Jun)</div>
+        <div class="kpi-value" style="font-size:20px;">R$ 42.035,70</div>
+        <div class="kpi-trend trend-down">▲ +10% mês a mês</div>
+      </div>
+      <div class="kpi good">
+        <div class="kpi-label">Receita Salva (Mai+Jun)</div>
+        <div class="kpi-value" style="font-size:20px;">R$ 30.642,64</div>
+        <div class="kpi-trend trend-up">▲ +53,7% mês a mês</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Evolução Mensal — Perdidos vs. Salvos</div>
+    <div class="chart-card">
+      <div class="bars">
+        <div class="bar-group">
+          <div class="bar-stack" style="height:136px;">
+            <div class="seg-saved" style="height:56%;"></div>
+            <div class="seg-lost" style="height:44%;"></div>
+          </div>
+          <div class="bar-month">ABRIL</div>
+          <div class="bar-ret" style="color:var(--ink);">41,18%</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-stack" style="height:112px;">
+            <div class="seg-saved" style="height:37.5%;"></div>
+            <div class="seg-lost" style="height:62.5%;"></div>
+          </div>
+          <div class="bar-month">MAIO</div>
+          <div class="bar-ret" style="color:var(--danger);">37,50%</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-stack" style="height:144px;">
+            <div class="seg-saved" style="height:33.3%;"></div>
+            <div class="seg-lost" style="height:66.7%;"></div>
+          </div>
+          <div class="bar-month">JUNHO</div>
+          <div class="bar-ret" style="color:var(--danger);">33,33%</div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--green);"></i> Salvos (retidos)</span>
+        <span><i class="sw" style="background:var(--danger);"></i> Perdidos (churn)</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Tabela Comparativa Mensal</div>
+    <div class="chart-card" style="padding:20px 24px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Mês</th><th>Solicitações</th><th>Perdidos</th><th>Salvos</th><th>Retenção</th>
+            <th>Receita Salva</th><th>Receita Perdida</th><th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Abril</td><td>68</td><td>40</td><td>28</td><td>41,18%</td>
+            <td>N/D</td><td>N/D</td><td>N/D</td>
+          </tr>
+          <tr>
+            <td>Maio</td><td>56</td><td>35</td><td>21</td><td class="neg">37,50%</td>
+            <td>R$ 12.080,92</td><td>R$ 20.017,85</td><td class="neg">-R$ 7.936,93</td>
+          </tr>
+          <tr>
+            <td>Junho</td><td>72</td><td>48</td><td>24</td><td class="neg">33,33%</td>
+            <td>R$ 18.561,72</td><td>R$ 22.017,85</td><td class="neg">-R$ 3.456,13</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout insight">
+        <b>Insight:</b> apesar da retenção % em queda, a receita salva cresceu +53,7% de Maio para Junho e o saldo líquido melhorou — indício de que a equipe está priorizando contas de maior valor, mesmo perdendo mais contas em volume.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Causa Raiz dos Cancelamentos</div>
+    <div class="cause-list">
+      <div class="cause">
+        <div class="rank">01</div>
+        <div class="cause-name">Usabilidade</div>
+        <div class="cause-bar-bg"><div class="cause-bar-fill" style="width:100%; background:var(--danger);"></div></div>
+      </div>
+      <div class="cause">
+        <div class="rank">02</div>
+        <div class="cause-name">Financeiro</div>
+        <div class="cause-bar-bg"><div class="cause-bar-fill" style="width:68%; background:var(--amber);"></div></div>
+      </div>
+      <div class="cause">
+        <div class="rank">03</div>
+        <div class="cause-name">Situação Interna da Igreja</div>
+        <div class="cause-bar-bg"><div class="cause-bar-fill" style="width:38%; background:var(--green);"></div></div>
+      </div>
+    </div>
+    <div class="callout">
+      <b>Alerta:</b> o ranking de causas é idêntico nos três meses do trimestre — sinal de causa estrutural (produto e política financeira), não sazonal. As ações corretivas atuais não estão revertendo a queda de retenção.
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Recomendações Estratégicas</div>
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-tag">Frente 1 · Usabilidade</div>
+        <div class="rec-title">Reduzir fricção de produto</div>
+        <ul>
+          <li>Auditoria qualitativa dos motivos de cancelamento por usabilidade</li>
+          <li>Onboarding assistido nos primeiros 30-60-90 dias</li>
+          <li>Check-in proativo do CS para contas com baixo engajamento</li>
+        </ul>
+      </div>
+      <div class="rec-card">
+        <div class="rec-tag">Frente 2 · Financeiro</div>
+        <div class="rec-title">Playbook de retenção financeira</div>
+        <ul>
+          <li>Faixas de desconto/parcelamento pré-aprovadas para o CS</li>
+          <li>Sistema de alerta antecipado de risco de inadimplência</li>
+          <li>Abordagem preventiva antes da solicitação de cancelamento</li>
+        </ul>
+      </div>
+      <div class="rec-card">
+        <div class="rec-tag">Frente 3 · Situação Interna</div>
+        <div class="rec-title">Monitoramento (health score)</div>
+        <ul>
+          <li>Baixo grau de controle direto — não é prioridade de investimento</li>
+          <li>Manter apenas acompanhamento via score de saúde da conta</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-bottom:0;">
+    <div class="section-title">Nota de Auditoria</div>
+    <div class="audit">
+      <b>[LOG · CONFERÊNCIA DE DADOS]</b> Divergência identificada na base bruta: mapeamento inicial indicava 63 solicitações em Abril e 69 em Maio. A soma real dos desfechos registrados — 68 (Abril) e 56 (Maio) — foi a utilizada para o cálculo oficial das taxas de retenção deste relatório. Recomenda-se reconciliação da base de origem em relatórios futuros.
+    </div>
+  </section>
+
+  <footer class="brand-footer">
+    <div class="logo">
+      <div class="logo-mark"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="logo-word">inchurch</div>
+    </div>
+    <div class="fdate">GERADO EM 01/07/2026 · CONFIDENCIAL — USO INTERNO</div>
+  </footer>
+
+</div>
+</body>
+</html>
